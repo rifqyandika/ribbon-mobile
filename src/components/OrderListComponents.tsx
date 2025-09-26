@@ -20,7 +20,6 @@ export default function OrdersScreen() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Fetch orders dari API
   useEffect(() => {
     const fetchOrders = async () => {
       if (!token) return;
@@ -32,7 +31,7 @@ export default function OrdersScreen() {
           }
         );
         // console.log("Orders:", res.data.data.orders);
-        setOrders(res.data.data.orders); // ✅ ambil orders dari API
+        setOrders(res.data.data.orders); 
       } catch (err: any) {
         console.error("Gagal fetch orders:", err.response?.data || err.message);
       } finally {
@@ -82,7 +81,7 @@ export default function OrdersScreen() {
     );
   }
   return (
-    <View className="flex-1 bg-gray-100 ">
+    <View className="flex-1 mt-2">
       <FlatList
         showsVerticalScrollIndicator={false}
         data={orders}
@@ -93,9 +92,9 @@ export default function OrdersScreen() {
               <View className="flex-row items-center">
                 <Ionicons name="bag-check" size={30} color="black" />
                 <View className="ml-4">
-                  <Text className="text-2xl font-semibold">{item.order_id}</Text>
-                  <Text className="text-gray-600 text-lg font-medium">{item.buyer}</Text>
-                  <Text className="text-blue-600 italic text-xl font-medium uppercase">{item.status}</Text>
+                  <Text className="text-xl font-semibold">{item.tracking}</Text>
+                  {/* <Text className="text-gray-600 text-lg font-medium">{item.buyer}</Text> */}
+                  <Text className="text-blue-600 italic text-md font-medium uppercase">{item.status}</Text>
                 </View>
               </View>
               <Ionicons name="ellipsis-vertical" size={20} />

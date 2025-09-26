@@ -35,7 +35,7 @@ export default function ConfirmOrderModal({
             {order && (
               <View className="mb-4">
                 <Text className="text-2xl font-semibold">
-                  Order: {order.order_id}
+                  Order: {order.tracking}
                 </Text>
                 <Text className="text-xl mt-1 font-medium">
                   Item Order : {order.order_details?.length} item

@@ -1,8 +1,7 @@
 import { useAuthStore } from "@/src/store/authStore";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
 export default function HeaderComponent() {
   const router = useRouter();
@@ -15,31 +14,32 @@ export default function HeaderComponent() {
   };
 
   return (
-    <LinearGradient
-      colors={["#1e3a8a", "#1e40af", "#1e3a8a"]} // biru gelap → biru menengah → biru terang
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      className="px-6 py-4 h-[210px] rounded-b-3xl"
-    >
-      <View className="flex-row justify-between items-center">
-        {/* User Info */}
-        <View className="space-y-1 py-5">
+    <View className="bg-blue-800 h-52 mb-6 px-6 pt-3 flex-row justify-between items-start z-10">
+      <View className="flex-row items-center pt-6">
+        <Image
+          source={{
+            uri:
+              user?.avatar ||
+              "https://i.pravatar.cc/150?img=50",
+          }}
+          className="w-16 h-16 rounded-full mr-4"
+        />
+        <View>
           <Text className="text-white text-2xl font-bold mb-1">
-            {user?.full_name ? `Halo, ${user.full_name}!` : "Halo, Guest!"}
+            {user?.full_name ? `${user.full_name}!` : "Guest!"}
           </Text>
-          <Text className="text-blue-100 text-2xl italic">
+          <Text className="text-blue-100 font-medium text-xl italic">
             {user?.roles?.[0]?.name || "Picker"}
           </Text>
         </View>
-
-        {/* Logout Button */}
-        <TouchableOpacity onPress={handleLogout}>
-          <View className="w-16 h-16 rounded flex-col justify-center items-center">
-            <Ionicons name="log-out-outline" color="#fff" size={35} />
-            <Text className="text-white text-sm">Logout</Text>
-          </View>
-        </TouchableOpacity>
       </View>
-    </LinearGradient>
+
+      <TouchableOpacity onPress={handleLogout} className="pt-6">
+        <View className="w-16 h-16 rounded-full justify-center items-center">
+          <Ionicons name="log-out-outline" color="#fff" size={35} />
+          <Text className="text-white text-sm">Logout</Text>
+        </View>
+      </TouchableOpacity>
+    </View>
   );
 }
