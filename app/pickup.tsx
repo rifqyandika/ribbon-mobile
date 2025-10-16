@@ -19,9 +19,7 @@ export default function PickupScreen() {
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
   const router = useRouter();
-
   const [checked, setChecked] = useState<number[]>([]);
-
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => true;
@@ -58,37 +56,51 @@ export default function PickupScreen() {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      Alert.alert(
-        "Success",
-        "Order marked as complete.",
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              router.replace("/");
-            },
+      Alert.alert("Success", "Order berhasil di pikcup.", [
+        {
+          text: "OK",
+          onPress: () => {
+            router.replace("/");
           },
-        ],
-        { cancelable: false }
-      );
+        },
+      ]);
     } catch (err: any) {
       console.error("Gagal complete:", err.response?.data || err.message);
     }
   };
 
+  const handleCancel = async () => {
+    try {
+      await axios.put(
+        `http://192.168.31.136:8000/api/mobile/orders/${parsedOrder.id}/cancel`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      Alert.alert("Success", "Order berhasil di Cancel.", [
+        {
+          text: "OK",
+          onPress: () => {
+            router.replace("/");
+          },
+        },
+      ]);
+    } catch (err: any) {
+      console.error("Gagal cancel:", err.response?.data || err.message);
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-100 p-6">
-      <Text className="text-2xl font-bold mb-4"># Pickup Order</Text>
+      <View className="flex-row justify-between items-center">
+        <Text className="text-2xl font-bold mb-4"># Pickup Order</Text>
+        <Pressable onPress={handleCancel}>
+          <Text className="text-xl bg-red-600 py-1 px-2 rounded text-white font-semibold mb-4">Cancel</Text>
+        </Pressable>
+      </View>
       <View className="bg-blue-800 rounded-xl p-4 mb-4">
-        <Text className="text-white text-xl font-semibold">
-          Order ID: {parsedOrder.order_id}
-        </Text>
-        <Text className="text-white text-xl font-medium">
-          Tracking: {parsedOrder.tracking}
-        </Text>
-        <Text className="text-white text-xl font-medium">
-          Status: {parsedOrder.status}
-        </Text>
+        <Text className="text-white text-xl font-semibold">Order ID: {parsedOrder.order_id}</Text>
+        <Text className="text-white text-xl font-medium">Tracking: {parsedOrder.tracking}</Text>
+        <Text className="text-white text-xl font-medium">Status: {parsedOrder.status}</Text>
         {/* <Text className="text-white text-xl">Buyer: {parsedOrder.buyer}</Text> */}
         <Text className="text-white text-xl">Picker: {user.full_name}</Text>
       </View>
@@ -102,9 +114,7 @@ export default function PickupScreen() {
           >
             <View
               className={`w-6 h-6 mr-3 rounded border-2 justify-center items-center ${
-                checked.includes(item.id)
-                  ? "bg-blue-500 border-blue-500"
-                  : "border-gray-400"
+                checked.includes(item.id) ? "bg-blue-500 border-blue-500" : "border-gray-400"
               }`}
             >
               {checked.includes(item.id) && (
@@ -113,12 +123,8 @@ export default function PickupScreen() {
             </View>
             <View className="flex-1 ml-3">
               <Text className="text-xl font-semibold">{item.product_name}</Text>
-              <Text className="font-medium text-xl text-gray-400">
-                Variant : {item.variant}
-              </Text>
-              <Text className="text-xl font-medium text-blue-800">
-                Qty: {item.quantity}
-              </Text>
+              <Text className="font-medium text-xl text-gray-400">Variant : {item.variant}</Text>
+              <Text className="text-xl font-medium text-blue-800">Qty: {item.quantity}</Text>
             </View>
           </Pressable>
         )}
@@ -126,20 +132,11 @@ export default function PickupScreen() {
       <Pressable
         disabled={!allChecked}
         onPress={handleDone}
-        className={`mt-6 py-5 rounded-lg ${
-          allChecked ? "bg-blue-800" : "bg-gray-400"
-        }`}
+        className={`mt-6 py-5 rounded-lg ${allChecked ? "bg-blue-800" : "bg-gray-400"}`}
       >
         <View className="flex-row justify-center items-center">
-          <Ionicons
-            name="checkmark-circle-sharp"
-            size={24}
-            color="white"
-            className="mr-2"
-          />
-          <Text className="text-center text-xl font-bold text-white">
-            DONE PICKUP
-          </Text>
+          <Ionicons name="checkmark-circle-sharp" size={24} color="white" className="mr-2" />
+          <Text className="text-center text-xl font-bold text-white">DONE PICKUP</Text>
         </View>
       </Pressable>
     </SafeAreaView>

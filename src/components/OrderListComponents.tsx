@@ -6,6 +6,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Pressable,
   Text,
@@ -27,11 +28,11 @@ export default function OrdersScreen() {
         const res = await axios.get(
           "http://192.168.31.136:8000/api/mobile/orders",
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers : { Authorization: `Bearer ${token}` },
           }
         );
         // console.log("Orders:", res.data.data.orders);
-        setOrders(res.data.data.orders); 
+        setOrders(res.data.data.orders);
       } catch (err: any) {
         console.error("Gagal fetch orders:", err.response?.data || err.message);
       } finally {
@@ -48,31 +49,47 @@ export default function OrdersScreen() {
   };
 
   const handleConfirm = async () => {
-    if (!selectedOrder) return;
+  if (!selectedOrder) return;
 
-    try {
-      const res = await axios.put(
-        `http://192.168.31.136:8000/api/mobile/orders/${selectedOrder.id}/pick`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+  try {
+    const res = await axios.put(
+      `http://192.168.31.136:8000/api/mobile/orders/${selectedOrder.id}/pick`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const updatedOrder = res.data.data;
+    router.push({
+      pathname: "/pickup",
+      params: { order: JSON.stringify(updatedOrder) },
+    });
+  } catch (err: any) {
+    if (err.response?.status === 404) {
+      Alert.alert(
+        "Gagal",
+        "Order sudah di pick oleh picker lain.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              router.replace("/");
+            },
           },
-        }
+        ],
+        { cancelable: false }
       );
-      const updatedOrder = res.data.data;
-      router.push({
-        pathname: "/pickup",
-        params: { order: JSON.stringify(updatedOrder) },
-      });
-    } catch (err: any) {
+    } else {
       console.error("Gagal pickup order:", err.response?.data || err.message);
-    } finally {
-      setModalVisible(false);
-      setSelectedOrder(null);
+      Alert.alert("Error", "Terjadi kesalahan saat pickup order.");
     }
-  };
-
+  } finally {
+    setModalVisible(false);
+    setSelectedOrder(null);
+  }
+};
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center">
@@ -94,7 +111,9 @@ export default function OrdersScreen() {
                 <View className="ml-4">
                   <Text className="text-xl font-semibold">{item.tracking}</Text>
                   {/* <Text className="text-gray-600 text-lg font-medium">{item.buyer}</Text> */}
-                  <Text className="text-blue-600 italic text-md font-medium uppercase">{item.status}</Text>
+                  <Text className="text-blue-600 italic text-md font-medium uppercase">
+                    {item.status}
+                  </Text>
                 </View>
               </View>
               <Ionicons name="ellipsis-vertical" size={20} />
@@ -102,7 +121,6 @@ export default function OrdersScreen() {
           </Pressable>
         )}
       />
-
       {/* Modal Konfirmasi */}
       <ConfirmOrderModal
         visible={modalVisible}

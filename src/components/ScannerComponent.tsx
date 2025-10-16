@@ -1,10 +1,15 @@
+import { useAuthStore } from "@/src/store/authStore";
+import axios from "axios";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { Alert, Animated, Easing, StyleSheet, Text, View } from "react-native";
 
 export default function ScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const token = useAuthStore((s) => s.token);
+  const router = useRouter();
   const animatedValue = useRef(new Animated.Value(0)).current;
 
   const boxSize = 250;
@@ -47,10 +52,71 @@ export default function ScannerScreen() {
       <CameraView
         style={StyleSheet.absoluteFillObject}
         facing="back"
-        onBarcodeScanned={({ data }) => {
-          if (!scanned) {
-            setScanned(true);
-            alert(`Barcode terbaca: ${data}`);
+        onBarcodeScanned={async ({ data }) => {
+          if (scanned) return;
+          setScanned(true);
+
+          try {
+            if (!token) {
+              Alert.alert(
+                "Error",
+                "Token tidak ditemukan. Silakan login ulang."
+              );
+              return;
+            }
+
+            // Try to fetch orders and find matching tracking
+            const res = await axios.get(
+              "http://192.168.31.136:8000/api/mobile/orders",
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const orders = res.data.data.orders as any[];
+            const matched = orders.find((o) => o.tracking === data);
+
+            if (!matched) {
+              Alert.alert(
+                "Tidak ditemukan",
+                `Order resi ${data} tidak ditemukan.`
+              );
+              setScanned(false);
+              return;
+            }
+
+            // Call pick endpoint similar to ConfirmOrderModal flow
+            try {
+              const pickRes = await axios.put(
+                `http://192.168.31.136:8000/api/mobile/orders/${matched.id}/pick`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+
+              const pickedOrder = pickRes.data.data;
+              router.push({
+                pathname: "/pickup",
+                params: { order: JSON.stringify(pickedOrder) },
+              });
+            } catch (err: any) {
+              if (err.response?.status === 404) {
+                Alert.alert("Gagal", "Order sudah di pick oleh picker lain.");
+              } else {
+                console.error(
+                  "Gagal pickup via scanner:",
+                  err.response?.data || err.message
+                );
+                Alert.alert(
+                  "Error",
+                  "Terjadi kesalahan saat pickup order via scanner."
+                );
+              }
+              setScanned(false);
+            }
+          } catch (err: any) {
+            console.error(
+              "Gagal mencari order:",
+              err.response?.data || err.message
+            );
+            Alert.alert("Error", "Gagal mencari order. Coba lagi.");
+            setScanned(false);
           }
         }}
       />

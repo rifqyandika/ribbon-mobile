@@ -14,7 +14,7 @@ export default function MainActivity() {
   const router = useRouter();
 
   const handleScanPress = () => {
-    // router.push("/scanner");
+    router.push("/scanner");
   };
 
   return (
